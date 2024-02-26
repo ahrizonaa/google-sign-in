@@ -1,10 +1,9 @@
-const { web, db } = require("./env.json");
+const { web, db, server } = require("./env.json");
 const express = require("express");
 const cors = require("cors");
 const { OAuth2Client } = require("google-auth-library");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
-const port = 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -36,8 +35,8 @@ app.get("/appsettings", async (req, res) => {
   res.send({ client_id: web.client_id });
 });
 
-app.listen(port, () => {
-  console.log(`Google sign in app listening on port ${port}`);
+app.listen(server.port, () => {
+  console.log(`Google sign in app listening on port ${server.port}`);
 });
 
 async function SyncUserWithDB(googleuser) {
