@@ -24,10 +24,6 @@ const mongodb = new MongoClient(db.mongodb_uri, {
   await mongodb.connect();
 })();
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
 app.post("/login/google", async (req, res) => {
   let googleuser = await VerifyGoogleUser(req.body.code);
 
