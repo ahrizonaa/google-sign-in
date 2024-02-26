@@ -3,8 +3,6 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
 
-import { SocialAuthService, SocialUser } from '@abacritt/angularx-social-login';
-import { FacebookLoginProvider } from '@abacritt/angularx-social-login';
 import { HttpClient } from '@angular/common/http';
 
 import { appConfig } from './app.config';
@@ -19,17 +17,14 @@ declare const google: any;
   styleUrl: './app.component.css',
 })
 export class AppComponent {
-  user: SocialUser | any;
+  user: any;
   loggedIn: boolean = false;
   accessToken: string = '';
   logoutTimer: number = 5;
   loginBtn: HTMLDivElement;
   client_id: string = '';
 
-  constructor(
-    private http: HttpClient,
-    private authService: SocialAuthService
-  ) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit() {
     this.http.get(appConfig.api + '/appsettings').subscribe((res: any) => {
@@ -38,18 +33,6 @@ export class AppComponent {
       this.renderGoogleSignIn();
     });
     this.loginBtn = document.getElementById('buttonDiv') as HTMLDivElement;
-    this.authService.authState.subscribe((user) => {
-      this.user = user;
-      this.loggedIn = user != null;
-    });
-  }
-
-  signInWithFB(): void {
-    this.authService.signIn(FacebookLoginProvider.PROVIDER_ID);
-  }
-
-  signOut(): void {
-    this.authService.signOut();
   }
 
   async handleCredentialResponse(response: any) {
@@ -81,8 +64,9 @@ export class AppComponent {
 
   renderGoogleSignIn() {
     google.accounts.id.renderButton(this.loginBtn, {
-      theme: 'outline',
-      size: 'large',
+      theme: 'filled_black',
+      size: 'medium',
+      text: 'signin',
     });
   }
 }
