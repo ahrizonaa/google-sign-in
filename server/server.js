@@ -26,6 +26,11 @@ const mongodb = new MongoClient(db.mongodb_uri, {
 app.post("/login/google", async (req, res) => {
   let googleuser = await VerifyGoogleUser(req.body.code);
 
+  if (googleuser.error) {
+    res.send(googleuser);
+    return;
+  }
+
   let response = await SyncUserWithDB(googleuser);
 
   res.send(response);
@@ -79,10 +84,33 @@ async function VerifyGoogleUser(code) {
     });
     const payload = ticket.getPayload();
 
+    VerifyGoogleAudClientId(payload.aud);
+
+    VerifyGoogleExpiry(payload.exp);
+
     return payload;
   } catch ({ message }) {
     return {
       error: message,
     };
   }
+}
+
+function VerifyGoogleAudClientId(aud) {
+  if (aud === web.client_id) {
+    return true;
+  }
+  throw new Error(
+    "Google Aud client_id does not match registered client_id.  Token may not be intended for this client.  Authentication fails."
+  );
+}
+
+function VerifyGoogleExpiry(epochSeconds) {
+  if (Date.now() / 1000 > epochSeconds) {
+    return true;
+  }
+
+  throw new Error(
+    "Google token expiration date has already passed.  Authentication fails."
+  );
 }
