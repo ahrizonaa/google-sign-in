@@ -17,20 +17,14 @@ async function VerifyGoogleUser(code) {
     VerifyGoogleAudClientId(payload.aud);
 
     if (IsGoogleExpired(payload.exp)) {
-      //refresh
-      const tokens = await client.getToken(code);
+      RequestAccessToken();
 
-      client.setCredentials(tokens);
-
-      const refreshUrl = client.generateAuthUrl({
-        access_type: "offline",
-        scope: "https://www.googleapis.com/auth/userinfo.profile",
-        prompt: "consent",
-      });
+      let url = await Refresh();
 
       payload = {
         tokens: tokens,
-        refreshUrl: refreshUrl,
+        refreshUrl: url,
+        isRefresh: true,
       };
     }
 
@@ -42,9 +36,20 @@ async function VerifyGoogleUser(code) {
   }
 }
 
-function RetrieveGoogleRefreshTokenUrl() {}
+async function Refresh() {
+  const refreshUrl = await client.generateAuthUrl({
+    access_type: "offline",
+    scope: "https://www.googleapis.com/auth/userinfo.profile",
+    prompt: "consent",
+  });
+  return refreshUrl;
+}
 
-function RetrieveGoogleAccessToken(code) {}
+async function RequestAccessToken(code) {
+  const tokens = await client.getToken(code);
+
+  client.setCredentials(tokens);
+}
 
 function VerifyGoogleAudClientId(aud) {
   if (aud === web.client_id) {
@@ -85,15 +90,18 @@ async function SyncUserWithDB(mongodb, googleuser) {
       return {
         ...newuser,
         _id: outcome.insertedId,
-        isUpsert: true,
+        isInsert: true,
       };
-    }
-    return {
-      error: "Unable to create new user using Google Sign In",
-    };
+    } else
+      return {
+        error: "Unable to create new user using Google Sign In",
+      };
   }
 
-  return user;
+  return {
+    ...user,
+    isAuthenticated: true,
+  };
 }
 
 module.exports = {
